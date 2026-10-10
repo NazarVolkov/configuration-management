@@ -1,0 +1,12 @@
+# Проверка реальных команд этапа 4
+pwd
+ls
+cd docs
+pwd
+ls
+cd ..
+history
+uptime
+cd missing
+ls /missing
+pwd

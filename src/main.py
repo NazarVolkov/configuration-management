@@ -1,25 +1,33 @@
-"""Эмулятор командной строки: конфигурация и REPL."""
+"""Главный модуль эмулятора оболочки."""
 
 from config import load_settings
+from shell import Shell
 from vfs import VirtualFS
 
 
-def run_line(line):
-    parts = line.split()
-    if not parts:
+def run_startup(shell, path):
+    if path is None:
         return True
-
-    command, args = parts[0], parts[1:]
-    if command == "exit":
-        if args:
-            print("exit: неверные аргументы")
-            return True
-        return False
-    if command in ("ls", "cd"):
-        print(f"{command}: {args}")
-    else:
-        print(f"Ошибка: неизвестная команда: {command}")
+    with path.open(encoding="utf-8") as file:
+        for text in file:
+            line = text.strip()
+            if not line or line.startswith("#"):
+                continue
+            print(shell.prompt + line)
+            if not shell.execute(line):
+                return False
     return True
+
+
+def run_interactive(shell):
+    while True:
+        try:
+            line = input(shell.prompt)
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if not shell.execute(line):
+            break
 
 
 def main():
@@ -28,31 +36,13 @@ def main():
         print(f"Конфигурация: {settings['config']}")
         print(f"VFS: {settings['vfs']}")
         print(f"Стартовый скрипт: {settings['startup']}")
-
-        vfs = VirtualFS(settings["vfs"])
-        name = vfs.name
-        prompt = f"{name}:/$ "
-        if settings["startup"]:
-            with settings["startup"].open(encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    print(prompt + line)
-                    if not run_line(line):
-                        return
+        shell = Shell(VirtualFS(settings["vfs"]))
+        if not run_startup(shell, settings["startup"]):
+            return 0
     except (OSError, ValueError) as error:
         print(f"Ошибка запуска: {error}")
         return 1
-
-    while True:
-        try:
-            line = input(prompt)
-        except (EOFError, KeyboardInterrupt):
-            print()
-            break
-        if not run_line(line):
-            break
+    run_interactive(shell)
     return 0
 
 
