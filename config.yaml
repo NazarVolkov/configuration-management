@@ -1,0 +1,2 @@
+vfs_path: vfs/demo
+startup_script: scripts/startup_stage2.txt

@@ -2,9 +2,21 @@
 
 Учебный эмулятор командной строки UNIX-подобной ОС на Python.
 
-## Этап 1 — REPL
+## Этапы 1–2
 
-Консольный интерфейс, приглашение с именем VFS `demo`, разбор строки
-по пробелам, заглушки `ls` и `cd`, команда `exit`, сообщения об ошибках.
+Консольный REPL, имя виртуальной файловой системы в приглашении,
+парсер с разделением по пробелам, заглушки `ls`, `cd` и команда `exit`.
 
-Запуск: `./run.sh`. Проверка: `python3 -m unittest discover -s tests -v`.
+Конфигурация задаётся в `config.yaml`, либо через `--config`, `--vfs`,
+`--startup`. Параметры командной строки имеют приоритет над YAML.
+Стартовый скрипт поддерживает строки-комментарии с `#`.
+
+## Запуск и тесты
+
+```sh
+python3 -m pip install -r requirements.txt
+./run.sh
+./run.sh --config config.yaml --vfs vfs/demo
+./scripts/check_config.sh
+python3 -m unittest discover -s tests -v
+```
