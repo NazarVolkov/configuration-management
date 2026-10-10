@@ -1,6 +1,7 @@
 """Эмулятор командной строки: конфигурация и REPL."""
 
 from config import load_settings
+from vfs import VirtualFS
 
 
 def run_line(line):
@@ -28,7 +29,8 @@ def main():
         print(f"VFS: {settings['vfs']}")
         print(f"Стартовый скрипт: {settings['startup']}")
 
-        name = settings["vfs"].name
+        vfs = VirtualFS(settings["vfs"])
+        name = vfs.name
         prompt = f"{name}:/$ "
         if settings["startup"]:
             with settings["startup"].open(encoding="utf-8") as file:
