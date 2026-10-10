@@ -69,3 +69,17 @@ class Shell:
         hours, rest = divmod(rest, 3600)
         minutes = rest // 60
         print(f"up {days} days, {hours:02d}:{minutes:02d}")
+
+    def do_touch(self, args):
+        if not args:
+            raise ValueError("нужно указать файл")
+        for name in args:
+            path = self.vfs.resolve(self.cwd, name)
+            self.vfs.touch(path)
+
+    def do_mkdir(self, args):
+        if not args:
+            raise ValueError("нужно указать каталог")
+        for name in args:
+            path = self.vfs.resolve(self.cwd, name)
+            self.vfs.mkdir(path)

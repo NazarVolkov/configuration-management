@@ -38,6 +38,19 @@ class ShellTests(unittest.TestCase):
         self.execute("cd ..")
         self.assertEqual(self.shell.cwd, "/")
 
+    def test_touch_and_mkdir_in_memory(self):
+        base = Path(self.tmp.name)
+        self.execute("mkdir virtual")
+        self.execute("cd virtual")
+        self.execute("touch file.txt more.txt")
+        self.assertIn("file.txt", self.execute("ls")[1])
+        self.assertIn("/virtual/more.txt", self.shell.vfs.files)
+        self.assertFalse((base / "virtual").exists())
+        self.assertIn("уже существует", self.execute("mkdir .")[1])
+        self.assertIn("Это каталог", self.execute("touch .")[1])
+        self.assertIn("Нет родительского", self.execute(
+            "touch /missing/file.txt")[1])
+
     def test_history_and_errors(self):
         self.execute("pwd")
         self.execute("cd missing")

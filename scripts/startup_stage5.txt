@@ -1,0 +1,21 @@
+# Этап 5. Все команды, успешные варианты и ошибки
+pwd
+ls
+mkdir new_folder
+cd new_folder
+touch first.txt
+touch second.txt
+touch first.txt
+ls
+pwd
+history
+uptime
+cd ..
+ls
+mkdir docs
+touch docs
+mkdir missing/child
+touch missing/file.txt
+cd missing
+bad_command
+pwd

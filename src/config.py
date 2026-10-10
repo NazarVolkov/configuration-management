@@ -16,8 +16,11 @@ def load_settings(argv=None):
     config_path = Path(args.config or "config.yaml").resolve()
     settings = {}
     if config_path.exists():
-        with config_path.open(encoding="utf-8") as file:
-            settings = yaml.safe_load(file) or {}
+        try:
+            with config_path.open(encoding="utf-8") as file:
+                settings = yaml.safe_load(file) or {}
+        except yaml.YAMLError as error:
+            raise ValueError(f"Ошибка YAML: {error}") from error
         if not isinstance(settings, dict):
             raise ValueError("YAML должен содержать словарь параметров")
     elif args.config:
