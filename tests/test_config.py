@@ -11,7 +11,10 @@ from config import load_settings
 
 
 class ConfigTests(unittest.TestCase):
+    """Проверки чтения и выбора настроек."""
+
     def test_yaml_and_override(self):
+        """Аргумент CLI заменяет соответствующее значение YAML."""
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)
             config = base / "settings.yaml"
@@ -29,6 +32,7 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(args["startup"], base / "start.txt")
 
     def test_bad_configuration(self):
+        """Верхний уровень YAML должен быть словарём."""
         with tempfile.TemporaryDirectory() as folder:
             config = Path(folder) / "bad.yaml"
             for content in ("- one\n- two\n", "[]", "false", "0"):
@@ -38,6 +42,7 @@ class ConfigTests(unittest.TestCase):
                         load_settings(["--config", str(config)])
 
     def test_vfs_path_is_required_but_startup_is_optional(self):
+        """Путь VFS проверяется, а стартовый скрипт можно отключить."""
         with tempfile.TemporaryDirectory() as folder:
             config = Path(folder) / "settings.yaml"
             for value in ("null", "''", "42"):

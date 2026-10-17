@@ -11,7 +11,10 @@ from vfs import VirtualFS
 
 
 class VfsTests(unittest.TestCase):
+    """Проверки загрузки и изменения виртуальных файлов."""
+
     def test_files_and_directories(self):
+        """Дерево каталогов и байты файлов загружаются в память."""
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)
             (base / "docs").mkdir()
@@ -22,6 +25,7 @@ class VfsTests(unittest.TestCase):
             self.assertEqual(vfs.files["/docs/hello.txt"], b"hello")
 
     def test_changes_only_in_memory(self):
+        """Виртуальные операции сохраняют исходные файлы на диске."""
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)
             original = (base / "original.txt")
@@ -35,10 +39,12 @@ class VfsTests(unittest.TestCase):
             self.assertEqual(original.read_text(), "data")
 
     def test_missing_directory(self):
+        """Отсутствующую исходную VFS нельзя загрузить."""
         with self.assertRaises(FileNotFoundError):
             VirtualFS("/this-vfs-path-does-not-exist-1234")
 
     def test_paths_check_intermediate_directories(self):
+        """Пути проходят через каталоги и остаются внутри виртуального корня."""
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)
             (base / "file.txt").write_text("data")

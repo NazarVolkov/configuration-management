@@ -3,6 +3,9 @@
 import time
 
 
+MAX_PATH_ARGS = 1
+
+
 class Shell:
     """Хранит текущий каталог, историю и обработчики команд."""
 
@@ -53,14 +56,14 @@ class Shell:
 
     def do_ls(self, args):
         """Показать каталог или имя отдельного файла."""
-        if len(args) > 1:
+        if len(args) > MAX_PATH_ARGS:
             raise ValueError("нужно не более одного пути")
         path = self.vfs.resolve(self.cwd, args[0] if args else ".")
         print("  ".join(self.vfs.contents(path)))
 
     def do_cd(self, args):
         """Перейти в каталог; без аргументов перейти в корень."""
-        if len(args) > 1:
+        if len(args) > MAX_PATH_ARGS:
             raise ValueError("нужно не более одного пути")
         path = self.vfs.resolve(self.cwd, args[0] if args else "/")
         if path not in self.vfs.directories:
