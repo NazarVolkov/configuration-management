@@ -3,9 +3,12 @@ pwd
 ls
 mkdir new_folder
 cd new_folder
+touch first.txt second.txt
 touch first.txt
-touch second.txt
-touch first.txt
+mkdir nested other
+mkdir trailing/
+touch nested/child.txt
+touch /new_folder/absolute.txt
 ls
 pwd
 history
@@ -14,8 +17,14 @@ cd ..
 ls
 mkdir docs
 touch docs
+touch new_file/
+touch
+mkdir
 mkdir missing/child
 touch missing/file.txt
+mkdir hello.txt/child
+touch hello.txt/child
 cd missing
 bad_command
 pwd
+exit

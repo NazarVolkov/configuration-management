@@ -6,6 +6,7 @@ from vfs import VirtualFS
 
 
 def run_startup(shell, path):
+    """Выполнить команды файла, пропуская пустые строки и комментарии."""
     if path is None:
         return True
     with path.open(encoding="utf-8") as file:
@@ -20,6 +21,7 @@ def run_startup(shell, path):
 
 
 def run_interactive(shell):
+    """Повторять ввод и выполнение команд до exit или конца ввода."""
     while True:
         try:
             line = input(shell.prompt)
@@ -31,6 +33,7 @@ def run_interactive(shell):
 
 
 def main():
+    """Загрузить настройки и VFS, выполнить скрипт и открыть REPL."""
     try:
         settings = load_settings()
         print(f"Конфигурация: {settings['config']}")

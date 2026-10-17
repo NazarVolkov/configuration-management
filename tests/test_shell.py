@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -48,8 +49,9 @@ class ShellTests(unittest.TestCase):
         self.assertFalse((base / "virtual").exists())
         self.assertIn("уже существует", self.execute("mkdir .")[1])
         self.assertIn("Это каталог", self.execute("touch .")[1])
-        self.assertIn("Нет родительского", self.execute(
+        self.assertIn("/missing", self.execute(
             "touch /missing/file.txt")[1])
+        self.assertNotIn("/missing/file.txt", self.shell.vfs.files)
 
     def test_history_and_errors(self):
         self.execute("pwd")
@@ -59,6 +61,27 @@ class ShellTests(unittest.TestCase):
         self.assertIn("1  pwd", self.execute("history")[1])
         self.assertIn("лишние аргументы", self.execute("exit now")[1])
         self.assertFalse(self.execute("exit")[0])
+
+    def test_bad_arguments_do_not_stop_shell(self):
+        commands = (
+            "ls one two", "cd one two", "pwd extra", "history extra",
+            "uptime extra", "touch", "mkdir", "touch newfile/",
+            "cd docs/test.txt/..",
+        )
+        for command in commands:
+            with self.subTest(command=command):
+                running, output = self.execute(command)
+                self.assertTrue(running)
+                self.assertTrue(output.strip())
+        self.assertEqual(self.shell.cwd, "/")
+        self.assertNotIn("/newfile", self.shell.vfs.files)
+
+    def test_uptime_starts_with_emulator(self):
+        with patch("shell.time.monotonic", return_value=self.shell.started):
+            self.assertEqual(self.execute("uptime")[1], "up 00:00:00\n")
+        later = self.shell.started + 3661
+        with patch("shell.time.monotonic", return_value=later):
+            self.assertEqual(self.execute("uptime")[1], "up 01:01:01\n")
 
 
 if __name__ == "__main__":

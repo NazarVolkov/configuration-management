@@ -38,6 +38,20 @@ class VfsTests(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             VirtualFS("/this-vfs-path-does-not-exist-1234")
 
+    def test_paths_check_intermediate_directories(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            (base / "file.txt").write_text("data")
+            (base / "docs").mkdir()
+            vfs = VirtualFS(base)
+            self.assertEqual(vfs.resolve("/docs", "../docs/."), "/docs")
+            self.assertEqual(vfs.resolve("/", "//docs"), "/docs")
+            self.assertEqual(vfs.resolve("/", "../../"), "/")
+            for path in ("file.txt/..", "file.txt/", "missing/.."):
+                with self.subTest(path=path):
+                    with self.assertRaises(NotADirectoryError):
+                        vfs.resolve("/", path)
+
 
 if __name__ == "__main__":
     unittest.main()

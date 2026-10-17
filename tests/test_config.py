@@ -31,9 +31,27 @@ class ConfigTests(unittest.TestCase):
     def test_bad_configuration(self):
         with tempfile.TemporaryDirectory() as folder:
             config = Path(folder) / "bad.yaml"
-            config.write_text("- one\n- two\n", encoding="utf-8")
-            with self.assertRaises(ValueError):
-                load_settings(["--config", str(config)])
+            for content in ("- one\n- two\n", "[]", "false", "0"):
+                with self.subTest(content=content):
+                    config.write_text(content, encoding="utf-8")
+                    with self.assertRaises(ValueError):
+                        load_settings(["--config", str(config)])
+
+    def test_vfs_path_is_required_but_startup_is_optional(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config = Path(folder) / "settings.yaml"
+            for value in ("null", "''", "42"):
+                with self.subTest(value=value):
+                    config.write_text(
+                        f"vfs_path: {value}\n", encoding="utf-8",
+                    )
+                    with self.assertRaises(ValueError):
+                        load_settings(["--config", str(config)])
+            config.write_text(
+                "vfs_path: example\nstartup_script: null\n", encoding="utf-8",
+            )
+            settings = load_settings(["--config", str(config)])
+            self.assertIsNone(settings["startup"])
 
 
 if __name__ == "__main__":

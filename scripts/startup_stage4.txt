@@ -1,12 +1,28 @@
 # Проверка реальных команд этапа 4
 pwd
 ls
+ls /
+ls docs
+ls hello.txt
 cd docs
 pwd
 ls
+cd .
 cd ..
-history
+cd /docs
+cd
 uptime
 cd missing
 ls /missing
+ls hello.txt/..
+ls hello.txt/
+ls one two
+cd one two
+pwd extra
+history extra
+uptime extra
+unknown
+exit wrong
 pwd
+history
+exit

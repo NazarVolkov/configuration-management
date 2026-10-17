@@ -1,4 +1,24 @@
 # Этап 3: VFS уже загружена в память
 ls
+ls /
+ls .
+cd /
+cd .
+cd ..
+cd
+# В глубокой VFS эти переходы покажут все три уровня.
+# В других VFS ожидаются ошибки отсутствующих каталогов.
 cd level1
+ls
+cd level2
+ls
+cd level3
+ls
+cd /
+ls /missing
+ls one two
+cd missing
+cd one two
 unknown
+exit wrong
+exit
