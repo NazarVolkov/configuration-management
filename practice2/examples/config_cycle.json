@@ -1,0 +1,6 @@
+{
+  "package": "A",
+  "repository": "cycle.json",
+  "test_mode": true,
+  "ascii_tree": true
+}

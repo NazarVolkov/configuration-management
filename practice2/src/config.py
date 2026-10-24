@@ -5,11 +5,13 @@ import re
 from pathlib import Path
 from urllib.parse import urlparse
 
+from versions import version_key
+
 
 def check_source(settings, base):
     """Проверить имя пакета и источник данных."""
     package = settings["package"]
-    pattern = r"[A-Z]+" if settings["test_mode"] else r"[\w.-]+"
+    pattern = r"[A-Z]+" if settings["test_mode"] else r"[A-Za-z0-9_.-]+"
     if not isinstance(package, str) or not re.fullmatch(pattern, package):
         raise ValueError("Неверное имя package")
     source = settings["repository"]
@@ -45,5 +47,7 @@ def load_config(filename):
     version = settings["version"]
     if version is not None and not isinstance(version, str):
         raise ValueError("version должен быть строкой или null")
+    if version is not None:
+        version_key(version)
     check_source(settings, path.parent)
     return settings

@@ -4,6 +4,7 @@ import argparse
 import xml.etree.ElementTree as ET
 
 from config import load_config
+from graph import build_graph, print_graph
 from repository import open_repository
 
 
@@ -15,16 +16,20 @@ def run(settings, stage):
         return
     repository = open_repository(settings)
     root = repository.root(settings["package"], settings["version"])
-    print(root)
-    for dependency in repository.dependencies(root):
-        print(f"  {dependency}")
+    if stage == 2:
+        print(root)
+        for dependency in repository.dependencies(root):
+            print(f"  {dependency}")
+        return
+    graph = build_graph(root, repository.dependencies)
+    print_graph(graph)
 
 
 def main():
     """Прочитать настройки и выполнить выбранный этап."""
     parser = argparse.ArgumentParser(description="Зависимости NuGet")
     parser.add_argument("config", nargs="?", default="config.json")
-    parser.add_argument("--stage", type=int, choices=(1, 2), default=2)
+    parser.add_argument("--stage", type=int, choices=(1, 2, 3), default=3)
     args = parser.parse_args()
     try:
         settings = load_config(args.config)
