@@ -1,0 +1,6 @@
+{
+  "package": "A",
+  "repository": "examples/branch.json",
+  "test_mode": true,
+  "ascii_tree": true
+}
