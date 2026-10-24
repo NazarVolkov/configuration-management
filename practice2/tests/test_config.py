@@ -51,6 +51,8 @@ class ConfigTests(unittest.TestCase):
             ("package", "a"), ("package", ""), ("package", 5),
             ("repository", "missing.json"), ("repository", 5),
             ("test_mode", "true"), ("ascii_tree", 1),
+            ("framework", 3), ("framework", ""),
+            ("version", 3), ("version", ""), ("version", "wrong"),
         ):
             with self.subTest(key=key, value=value):
                 bad = dict(self.settings, **{key: value})

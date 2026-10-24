@@ -28,6 +28,19 @@ def check_source(settings, base):
             raise ValueError("repository должен быть URL HTTP или HTTPS")
 
 
+def check_options(settings):
+    """Проверить необязательные настройки платформы и версии."""
+    settings.setdefault("framework", "net8.0")
+    settings.setdefault("version", None)
+    if not isinstance(settings["framework"], str) or not settings["framework"]:
+        raise ValueError("framework должен быть непустой строкой")
+    version = settings["version"]
+    if version is not None and not isinstance(version, str):
+        raise ValueError("version должен быть строкой или null")
+    if version is not None:
+        version_key(version)
+
+
 def load_config(filename):
     """Прочитать обязательные параметры и проверить их типы."""
     path = Path(filename).resolve()
@@ -40,14 +53,6 @@ def load_config(filename):
     for key in ("test_mode", "ascii_tree"):
         if not isinstance(settings[key], bool):
             raise ValueError(f"{key} должен быть true или false")
-    settings.setdefault("framework", "net8.0")
-    settings.setdefault("version", None)
-    if not isinstance(settings["framework"], str) or not settings["framework"]:
-        raise ValueError("framework должен быть непустой строкой")
-    version = settings["version"]
-    if version is not None and not isinstance(version, str):
-        raise ValueError("version должен быть строкой или null")
-    if version is not None:
-        version_key(version)
+    check_options(settings)
     check_source(settings, path.parent)
     return settings
