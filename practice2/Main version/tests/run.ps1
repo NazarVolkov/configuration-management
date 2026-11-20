@@ -23,7 +23,7 @@ function Save-Config {
 try {
     & ./build.bat
     if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
-    $actual = Invoke-App
+    $actual = Invoke-App @('--stage','1')
     foreach ($line in @('package = A', 'test_mode = true', 'ascii_tree = true')) {
         if ($actual -notcontains $line) { throw "Missing setting: $line" }
     }
@@ -33,20 +33,39 @@ try {
         $changed = $valid.Clone()
         $changed[$key] = $invalid[$key]
         Save-Config $changed
-        $null = Invoke-App @('build/test.json') $false
+        $null = Invoke-App @('build/test.json','--stage','1') $false
         $changed = $valid.Clone()
         $changed.Remove($key)
         Save-Config $changed
-        $null = Invoke-App @('build/test.json') $false
+        $null = Invoke-App @('build/test.json','--stage','1') $false
     }
     $changed = $valid.Clone()
     $changed.test_mode = $false
     $changed.repository = 'not-a-url'
     Save-Config $changed
-    $null = Invoke-App @('build/test.json') $false
+    $null = Invoke-App @('build/test.json','--stage','1') $false
     '{invalid' | Set-Content -Encoding UTF8 build/test.json
-    $null = Invoke-App @('build/test.json') $false
+    $null = Invoke-App @('build/test.json','--stage','1') $false
     $null = Invoke-App @('missing.json') $false
+    $actual = Invoke-App @('--stage','3')
+    if (($actual -join '|') -ne 'A -> B C|B -> D|C -> D|D -> -') { throw 'Branch DFS failed' }
+    $cases = @{
+        E = 'E -> F|F -> E'
+        G = 'G -> -'
+        H = 'H -> H'
+    }
+    foreach ($name in $cases.Keys) {
+        $changed = $valid.Clone()
+        $changed.package = $name
+        Save-Config $changed
+        $actual = Invoke-App @('build/test.json','--stage','3')
+        if (($actual -join '|') -ne $cases[$name]) { throw "DFS failed for $name" }
+    }
+    '{"A":["Z"]}' | Set-Content -Encoding UTF8 build/broken.json
+    $changed = $valid.Clone()
+    $changed.repository = 'broken.json'
+    Save-Config $changed
+    $null = Invoke-App @('build/test.json','--stage','3') $false
     Write-Host "Passed $script:checks checks."
 } finally {
     Pop-Location

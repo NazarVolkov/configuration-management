@@ -12,7 +12,7 @@ constexpr const char* usage =
 
 struct Arguments {
     std::filesystem::path file = L"config.json";
-    Stage stage = Stage::settings;
+    Stage stage = Stage::graph;
     std::string target;
     bool no_image = false;
     bool no_open = false;
@@ -89,18 +89,28 @@ void print_direct(const std::string& root, const Packages& dependencies) {
     }
 }
 
+void analyze(const Arguments& args, const std::string& root, const Fetch& fetch) {
+    if (args.stage == Stage::direct) {
+        print_direct(root, fetch(root));
+    } else if (args.stage == Stage::graph) {
+        print_graph(build_graph(root, fetch), std::cout);
+    } else {
+        throw std::runtime_error("Stage not implemented yet.");
+    }
+}
+
 void run(const Arguments& args) {
     const auto settings = load_settings(args.file);
     if (args.stage == Stage::settings) {
         print_settings(settings, std::cout);
-        return;
+    } else if (settings.test_mode) {
+        const auto graph = load_test_graph(settings);
+        analyze(args, settings.package, [&](const std::string& node) { return graph.at(node); });
+    } else {
+        Nuget repository(settings);
+        const auto root = repository.root(settings);
+        analyze(args, root, [&](const std::string& node) { return repository.dependencies(node); });
     }
-    if (args.stage != Stage::direct || settings.test_mode) {
-        throw std::runtime_error("This stage needs a real NuGet repository.");
-    }
-    Nuget repository(settings);
-    const auto root = repository.root(settings);
-    print_direct(root, repository.dependencies(root));
 }
 }  // namespace
 

@@ -44,3 +44,12 @@ private:
     std::map<std::string, Packages> dependencies_;
     const Packages& versions(const std::string& id);
 };
+
+#include <functional>
+
+using Graph = std::map<std::string, Packages>;
+using Fetch = std::function<Packages(const std::string&)>;
+
+Graph load_test_graph(const Settings& settings);
+Graph build_graph(const std::string& root, const Fetch& fetch);
+void print_graph(const Graph& graph, std::ostream& output);
