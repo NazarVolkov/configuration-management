@@ -12,7 +12,7 @@ function Invoke-App {
     if (($code -eq 0) -ne $Success) { throw "Unexpected exit code ${code}: $lines" }
     if (-not $Success -and "$lines" -notmatch 'Error:') { throw 'Missing error message' }
     $script:checks++
-    return @($lines | ForEach-Object { "$_" })
+    return ,@($lines | ForEach-Object { "$_" })
 }
 
 function Save-Config {
@@ -77,7 +77,30 @@ try {
     }
     $null = Invoke-App @('--stage','4','--reverse','Z') $false
     $null = Invoke-App @('--stage','3','--reverse','D') $false
+    $actual = Invoke-App @('--no-image')
+    if ("$actual" -notmatch 'D \[shown\]') { throw 'Shared dependency marker missing' }
+    $diagram = Get-Content -Raw output/graph_A.puml
+    foreach ($edge in @('P0 --> P1','P0 --> P2','P1 --> P3','P2 --> P3')) {
+        if ($diagram -notmatch [regex]::Escape($edge)) { throw "PlantUML edge missing: $edge" }
+    }
+    $changed = $valid.Clone()
+    $changed.package = 'E'
+    Save-Config $changed
+    $actual = Invoke-App @('build/test.json','--no-image')
+    if ("$actual" -notmatch 'E \[cycle\]') { throw 'Cycle marker missing' }
+    $changed.package = 'G'
+    $changed.ascii_tree = $false
+    Save-Config $changed
+    $actual = Invoke-App @('build/test.json','--no-image')
+    if ($actual.Count -ne 1 -or $actual[0] -notmatch '^PlantUML: ') { throw 'Tree flag ignored' }
+    $null = Invoke-App @('--stage','2')
+    $null = Invoke-App @('--stage','0') $false
+    $null = Invoke-App @('--stage') $false
+    $null = Invoke-App @('--unknown') $false
     Write-Host "Passed $script:checks checks."
 } finally {
+    foreach ($name in @('build/test.json','build/broken.json','output/graph_E.puml','output/graph_G.puml')) {
+        if (Test-Path -LiteralPath $name) { Remove-Item -LiteralPath $name -Force }
+    }
     Pop-Location
 }

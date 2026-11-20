@@ -12,7 +12,7 @@ constexpr const char* usage =
 
 struct Arguments {
     std::filesystem::path file = L"config.json";
-    Stage stage = Stage::graph;
+    Stage stage = Stage::visualize;
     std::string target;
     bool no_image = false;
     bool no_open = false;
@@ -89,19 +89,35 @@ void print_direct(const std::string& root, const Packages& dependencies) {
     }
 }
 
-void analyze(const Arguments& args, const std::string& root, const Fetch& fetch, const Graph* test_graph = nullptr) {
+void show_graph(const Graph& graph, const std::string& root, const Arguments& args, bool tree) {
+    if (args.stage == Stage::graph) {
+        print_graph(graph, std::cout);
+        return;
+    }
+    if (tree) {
+        std::cout << ascii_tree(graph, root);
+    }
+    const auto source = save_diagram(graph, root);
+    std::cout << "PlantUML: " << source.u8string() << '\n';
+    if (!args.no_image) {
+        render_png(source, !args.no_open);
+    }
+}
+
+void analyze(const Arguments& args, const std::string& root, const Fetch& fetch, bool tree,
+             const Graph* test_graph = nullptr) {
     if (args.stage == Stage::direct) {
         print_direct(root, fetch(root));
-    } else if (args.stage == Stage::graph) {
-        print_graph(build_graph(root, fetch), std::cout);
-    } else if (args.stage == Stage::reverse) {
+        return;
+    }
+    if (args.stage == Stage::reverse) {
         const auto target = args.target.empty() ? root : args.target;
         const auto graph = test_graph ? reverse_graph(*test_graph, target)
                                       : reverse_graph(build_graph(root, fetch), lower_name(target));
         print_graph(graph, std::cout);
-    } else {
-        throw std::runtime_error("Stage not implemented yet.");
+        return;
     }
+    show_graph(build_graph(root, fetch), root, args, tree);
 }
 
 void run(const Arguments& args) {
@@ -110,11 +126,13 @@ void run(const Arguments& args) {
         print_settings(settings, std::cout);
     } else if (settings.test_mode) {
         const auto graph = load_test_graph(settings);
-        analyze(args, settings.package, [&](const std::string& node) { return graph.at(node); }, &graph);
+        analyze(args, settings.package, [&](const std::string& node) { return graph.at(node); },
+                settings.ascii_tree, &graph);
     } else {
         Nuget repository(settings);
         const auto root = repository.root(settings);
-        analyze(args, root, [&](const std::string& node) { return repository.dependencies(node); });
+        analyze(args, root, [&](const std::string& node) { return repository.dependencies(node); },
+                settings.ascii_tree);
     }
 }
 }  // namespace

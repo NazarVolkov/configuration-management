@@ -1,8 +1,12 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
 #include <iosfwd>
+#include <map>
 #include <string>
+#include <vector>
+
 
 struct Settings {
     std::string package;
@@ -20,8 +24,6 @@ bool stable_version(const std::string& version);
 Settings load_settings(const std::filesystem::path& file);
 void print_settings(const Settings& settings, std::ostream& output);
 
-#include <map>
-#include <vector>
 
 using Packages = std::vector<std::string>;
 using Requirements = std::vector<std::pair<std::string, std::string>>;
@@ -45,7 +47,6 @@ private:
     const Packages& versions(const std::string& id);
 };
 
-#include <functional>
 
 using Graph = std::map<std::string, Packages>;
 using Fetch = std::function<Packages(const std::string&)>;
@@ -55,3 +56,8 @@ Graph build_graph(const std::string& root, const Fetch& fetch);
 void print_graph(const Graph& graph, std::ostream& output);
 
 Graph reverse_graph(const Graph& graph, const std::string& target);
+
+std::string ascii_tree(const Graph& graph, const std::string& root);
+std::string plantuml(const Graph& graph);
+std::filesystem::path save_diagram(const Graph& graph, const std::string& root);
+void render_png(const std::filesystem::path& source, bool open_image);
