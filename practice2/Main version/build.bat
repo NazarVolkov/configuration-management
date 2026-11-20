@@ -14,8 +14,12 @@ if not exist build\deps\json.hpp (
     move /y build\deps\json.tmp build\deps\json.hpp >nul
     if errorlevel 1 exit /b 1
 )
+call :xml tinyxml2.h
+if errorlevel 1 exit /b 1
+call :xml tinyxml2.cpp
+if errorlevel 1 exit /b 1
 cl /nologo /std:c++17 /EHsc /W4 /WX /utf-8 /MT /Ibuild\deps /Fobuild\ ^
-    /Febuild\nuget_graph.exe src\*.cpp
+    /Febuild\nuget_graph.exe src\*.cpp build\deps\tinyxml2.cpp winhttp.lib shell32.lib
 exit /b %errorlevel%
 
 :compiler
@@ -32,3 +36,11 @@ exit /b %errorlevel%
 :missing
 echo Install Visual Studio with Desktop development with C++.
 exit /b 1
+
+:xml
+if exist "build\deps\%~1" exit /b 0
+curl.exe -fLsS --max-time 60 --output "build\deps\%~1.tmp" ^
+    "https://raw.githubusercontent.com/leethomason/tinyxml2/11.0.0/%~1"
+if errorlevel 1 exit /b 1
+move /y "build\deps\%~1.tmp" "build\deps\%~1" >nul
+exit /b %errorlevel%

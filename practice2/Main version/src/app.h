@@ -19,3 +19,28 @@ bool valid_url(const std::string& url);
 bool stable_version(const std::string& version);
 Settings load_settings(const std::filesystem::path& file);
 void print_settings(const Settings& settings, std::ostream& output);
+
+#include <map>
+#include <vector>
+
+using Packages = std::vector<std::string>;
+using Requirements = std::vector<std::pair<std::string, std::string>>;
+
+std::string download(const std::string& url);
+std::string lower_name(std::string value);
+std::string choose_version(const Packages& versions, const std::string& range, bool latest = false);
+Requirements read_dependencies(const std::string& xml, const std::string& framework);
+
+class Nuget {
+public:
+    explicit Nuget(const Settings& settings);
+    std::string root(const Settings& settings);
+    Packages dependencies(const std::string& package);
+
+private:
+    std::string base_;
+    std::string framework_;
+    std::map<std::string, Packages> versions_;
+    std::map<std::string, Packages> dependencies_;
+    const Packages& versions(const std::string& id);
+};

@@ -33,3 +33,19 @@ main.cpp: wmain обрабатывает путь к конфигурации и
 
 Исходники находятся в src, тесты - в tests. build и output исключены
 из Git. Коммиты этапов используют Conventional Commits.
+
+## Этап 2: прямые зависимости
+
+```powershell
+.\run.bat examples/logging.json --stage 2
+```
+
+Nuget::root выбирает версию пакета, Nuget::versions загружает список версий,
+Nuget::dependencies читает зависимости из nuspec. package_base находит
+PackageBaseAddress в индексе NuGet V3, lower_name нормализует регистр.
+read_dependencies читает XML, select_group выбирает группу платформы.
+choose_version выбирает подходящую стабильную версию; parse_range,
+parse_interval, matches, key, compact, valid_bound разбирают и проверяют
+границы. download выполняет HTTP GET, check и body проверяют ответ.
+TinyXML-2 разбирает только XML. Готовые средства получения зависимостей
+и менеджеры пакетов при анализе не вызываются.

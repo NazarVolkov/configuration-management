@@ -1,0 +1,8 @@
+{
+  "package": "Microsoft.Extensions.Options",
+  "repository": "https://api.nuget.org/v3/index.json",
+  "test_mode": false,
+  "ascii_tree": true,
+  "version": "8.0.0",
+  "framework": "net8.0"
+}
