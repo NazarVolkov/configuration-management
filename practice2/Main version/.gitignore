@@ -1,0 +1,15 @@
+/build/
+/output/
+*.exe
+*.dll
+*.obj
+*.o
+*.pdb
+*.ilk
+*.zip
+*.jar
+.vs/
+.vscode/
+.idea/
+__pycache__/
+*.pyc
