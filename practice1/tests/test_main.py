@@ -50,7 +50,7 @@ class MainTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("minimal:/$ ls", result.stdout)
-        self.assertIn("README.txt", result.stdout)
+        self.assertIn("example.txt", result.stdout)
         self.assertNotIn("hello.txt", result.stdout)
 
     def test_missing_paths(self):
