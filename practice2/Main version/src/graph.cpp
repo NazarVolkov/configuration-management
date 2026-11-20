@@ -66,3 +66,17 @@ void print_graph(const Graph& graph, std::ostream& output) {
         output << '\n';
     }
 }
+
+Graph reverse_graph(const Graph& graph, const std::string& target) {
+    if (graph.find(target) == graph.end()) {
+        throw std::runtime_error("Reverse target not in graph: " + target);
+    }
+    Graph reversed;
+    for (const auto& [name, children] : graph) {
+        reversed.try_emplace(name);
+        for (const auto& child : children) {
+            reversed[child].push_back(name);
+        }
+    }
+    return build_graph(target, [&](const std::string& node) { return reversed.at(node); });
+}

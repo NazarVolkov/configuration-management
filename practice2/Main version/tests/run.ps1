@@ -66,6 +66,17 @@ try {
     $changed.repository = 'broken.json'
     Save-Config $changed
     $null = Invoke-App @('build/test.json','--stage','3') $false
+    $actual = Invoke-App @('--stage','4','--reverse','D')
+    if (($actual -join '|') -ne 'A -> -|B -> A I|C -> A|D -> B C|I -> -') {
+        throw 'Reverse graph lost incoming packages outside the root subtree'
+    }
+    $cases = @{E='E -> F|F -> E';G='G -> -';H='H -> H'}
+    foreach ($name in $cases.Keys) {
+        $actual = Invoke-App @('--stage','4','--reverse',$name)
+        if (($actual -join '|') -ne $cases[$name]) { throw "Reverse DFS failed for $name" }
+    }
+    $null = Invoke-App @('--stage','4','--reverse','Z') $false
+    $null = Invoke-App @('--stage','3','--reverse','D') $false
     Write-Host "Passed $script:checks checks."
 } finally {
     Pop-Location
