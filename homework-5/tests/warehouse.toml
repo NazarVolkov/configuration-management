@@ -1,0 +1,7 @@
+depot = "Склад D:\\storage #2"
+stock = 48
+reserved = 12
+available = 36
+minimum = 36
+aisles = [["A", 24], ["B", 24], ["C", 0]]
+summary = ["Склад D:\\storage #2", 36, 36]

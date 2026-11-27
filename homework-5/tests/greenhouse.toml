@@ -1,0 +1,7 @@
+station = "Теплица \"Север\""
+samples = [16, 49, 0.25, 20.0]
+gain = 1.25
+offset = -0.5
+radius = 9.0
+adjusted = 10.75
+thresholds = [[10, 20], [10.75, 30]]
