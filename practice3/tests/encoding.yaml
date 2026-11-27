@@ -1,0 +1,5 @@
+# Instruction fields and expected bytes are checked by run.ps1.
+- push: 285
+- load: 759
+- store: 547
+- sqrt: 15
