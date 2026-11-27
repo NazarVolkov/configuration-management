@@ -4,9 +4,28 @@
 
 #include <peglib.h>
 
+#include <any>
 #include <map>
 
 namespace {
+
+constexpr std::size_t maximum_nesting = 128;
+
+void limit_nesting(peg::parser& parser, std::size_t& depth) {
+    for (const auto rule : {"Array", "Expression"}) {
+        parser[rule].enter = [&](const peg::Context&, const char*, std::size_t, std::any&) { ++depth; };
+        parser[rule].leave = [&](const peg::Context&, const char*, std::size_t, std::size_t, std::any&, std::any&) {
+            --depth;
+        };
+    }
+    parser["Nesting"].predicate = [&](const peg::SemanticValues&, const std::any&, std::string& message) {
+        if (depth <= maximum_nesting) {
+            return true;
+        }
+        message = "nesting exceeds " + std::to_string(maximum_nesting) + " levels";
+        return false;
+    };
+}
 
 Position position_of(const peg::Ast& node) {
     return {node.line, node.column};
@@ -48,6 +67,8 @@ std::vector<Declaration> parse_document(std::string_view source) {
         error_position = {line, column};
         diagnostic = message;
     });
+    std::size_t depth = 0;
+    limit_nesting(parser, depth);
     parser.enable_ast();
     std::shared_ptr<peg::Ast> document;
     if (!parser.parse(source, document)) {
