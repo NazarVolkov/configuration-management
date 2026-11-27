@@ -21,4 +21,13 @@ const Operation* find_operation(std::string_view name) {
     return nullptr;
 }
 
+const Operation* find_operation(Opcode opcode) {
+    for (const auto& operation : operations) {
+        if (operation.opcode == opcode) {
+            return &operation;
+        }
+    }
+    return nullptr;
+}
+
 }

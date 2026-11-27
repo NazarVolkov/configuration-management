@@ -19,6 +19,17 @@ function Assert-Text([string[]]$Actual, [string[]]$Expected, [string]$Label) {
     }
 }
 
+function Test-Memory([string]$Fixture, [int]$First, [int]$Last, [string[]]$Expected) {
+    $name = [IO.Path]::GetFileNameWithoutExtension($Fixture)
+    $source = Join-Path $PSScriptRoot $Fixture
+    $program = Join-Path $project "build/$name.bin"
+    $dump = Join-Path $project "build/$name.csv"
+    $null = Invoke-Uvm @('assemble', $source, $program)
+    $null = Invoke-Uvm @('interpret', $program, $dump, $First.ToString(), $Last.ToString())
+    Assert-Text ([IO.File]::ReadAllLines($dump)) (@('address,value') + $Expected) $name
+    Write-Host "PASS: $name"
+}
+
 $fields = Invoke-Uvm @('assemble', $fixture, $binary, '--test-fields')
 $expectedFields = @('A=14, B=285', 'A=6, B=759', 'A=3, B=547', 'A=11, B=15', 'Binary size: 16 bytes')
 Assert-Text $fields $expectedFields 'Instruction fields'
@@ -36,3 +47,6 @@ Assert-Text $bytes $expectedBytes 'Displayed machine code'
 $actualHex = [BitConverter]::ToString([IO.File]::ReadAllBytes($binary))
 Assert-Text $actualHex 'DE-11-00-00-76-2F-00-00-33-22-00-00-FB-00-00-00' 'Binary file'
 Write-Host 'PASS: machine code'
+
+Test-Memory 'copy.yaml' 19 23 @('19,0', '20,7', '21,42', '22,513', '23,67108863')
+Test-Memory 'copy.yaml' 100 104 @('100,7', '101,42', '102,513', '103,67108863', '104,0')

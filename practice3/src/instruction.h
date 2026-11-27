@@ -32,5 +32,6 @@ struct Instruction {
 };
 
 const Operation* find_operation(std::string_view name);
+const Operation* find_operation(Opcode opcode);
 
 }
