@@ -1,4 +1,5 @@
 #include "assembler.h"
+#include "machine_code.h"
 
 #include <filesystem>
 #include <iostream>
@@ -10,20 +11,26 @@ namespace {
 using Arguments = std::vector<std::filesystem::path>;
 
 void print_help(std::ostream& output) {
-    output << "Usage:\n  uvm assemble <source.yaml> <output.bin> [--test]\n  uvm --help\n";
+    output << "Usage:\n  uvm assemble <source.yaml> <output.bin> [--test | --test-fields]\n  uvm --help\n";
 }
 
 void assemble(const Arguments& args) {
-    if (args.size() < 3 || args.size() > 4 || (args.size() == 4 && args[3] != "--test")) {
+    if (args.size() < 3 || args.size() > 4) {
         throw std::runtime_error("invalid arguments for assemble");
     }
+    const auto mode = args.size() == 4 ? args[3] : std::filesystem::path{};
+    if (args.size() == 4 && mode != "--test" && mode != "--test-fields") {
+        throw std::runtime_error("expected --test or --test-fields");
+    }
     const auto program = uvm::read_assembly(args[1]);
-    if (args.size() == 4) {
+    uvm::write_machine_code(args[2], program, mode == "--test" ? &std::cout : nullptr);
+    if (mode == "--test-fields") {
         for (const auto& instruction : program) {
             std::cout << "A=" << static_cast<std::uint32_t>(instruction.opcode) << ", B="
                       << instruction.operand << '\n';
         }
     }
+    std::cout << "Binary size: " << program.size() * uvm::instruction_size << " bytes\n";
 }
 
 int run(const Arguments& args) {
