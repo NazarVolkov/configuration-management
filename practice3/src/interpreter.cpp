@@ -1,6 +1,7 @@
 #include "interpreter.h"
 #include "machine_code.h"
 
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -25,6 +26,13 @@ double pop(Stack& stack) {
     return value;
 }
 
+std::uint32_t resolve_address(double base, std::uint32_t offset) {
+    if (!std::isfinite(base) || base < 0 || base > last_address - offset || std::trunc(base) != base) {
+        throw std::runtime_error("sqrt requires a whole base address with base + offset in 0..65535");
+    }
+    return static_cast<std::uint32_t>(base) + offset;
+}
+
 void execute(const Instruction& instruction, Memory& memory, Stack& stack) {
     switch (instruction.opcode) {
     case Opcode::push:
@@ -36,8 +44,12 @@ void execute(const Instruction& instruction, Memory& memory, Stack& stack) {
     case Opcode::store:
         memory[instruction.operand] = pop(stack);
         break;
-    case Opcode::sqrt:
-        throw std::runtime_error("sqrt is implemented in stage 4");
+    case Opcode::sqrt: {
+        const auto operand = pop(stack);
+        const auto address = resolve_address(pop(stack), instruction.operand);
+        memory[address] = std::sqrt(operand);
+        break;
+    }
     }
 }
 

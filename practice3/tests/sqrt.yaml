@@ -1,0 +1,13 @@
+# Store sqrt(144) at 250 + 7 using two values loaded from memory.
+- push: 250
+- store: 50
+- push: 144
+- store: 51
+- load: 50
+- load: 51
+- sqrt: 7
+
+# Exercise the last valid address.
+- push: 65534
+- push: 100
+- sqrt: 1

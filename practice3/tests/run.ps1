@@ -19,6 +19,23 @@ function Assert-Text([string[]]$Actual, [string[]]$Expected, [string]$Label) {
     }
 }
 
+function Assert-UvmError([string[]]$Command, [string]$Message) {
+    $ErrorActionPreference = 'Continue'
+    $output = & $exe @Command 2>&1
+    if ($LASTEXITCODE -ne 1 -or ($output -join "`n") -notlike "*$Message*") {
+        throw "Expected '$Message', got '$output'."
+    }
+}
+
+function Test-InvalidProgram([string[]]$Instructions, [string]$Message) {
+    $source = Join-Path $project 'build/invalid.yaml'
+    $program = Join-Path $project 'build/invalid.bin'
+    $dump = Join-Path $project 'build/invalid.csv'
+    [IO.File]::WriteAllLines($source, $Instructions)
+    $null = Invoke-Uvm @('assemble', $source, $program)
+    Assert-UvmError @('interpret', $program, $dump, '0', '1') $Message
+}
+
 function Test-Memory([string]$Fixture, [int]$First, [int]$Last, [string[]]$Expected) {
     $name = [IO.Path]::GetFileNameWithoutExtension($Fixture)
     $source = Join-Path $PSScriptRoot $Fixture
@@ -27,7 +44,7 @@ function Test-Memory([string]$Fixture, [int]$First, [int]$Last, [string[]]$Expec
     $null = Invoke-Uvm @('assemble', $source, $program)
     $null = Invoke-Uvm @('interpret', $program, $dump, $First.ToString(), $Last.ToString())
     Assert-Text ([IO.File]::ReadAllLines($dump)) (@('address,value') + $Expected) $name
-    Write-Host "PASS: $name"
+    Write-Host "PASS: $name ($First..$Last)"
 }
 
 $fields = Invoke-Uvm @('assemble', $fixture, $binary, '--test-fields')
@@ -50,3 +67,11 @@ Write-Host 'PASS: machine code'
 
 Test-Memory 'copy.yaml' 19 23 @('19,0', '20,7', '21,42', '22,513', '23,67108863')
 Test-Memory 'copy.yaml' 100 104 @('100,7', '101,42', '102,513', '103,67108863', '104,0')
+Test-Memory 'sqrt.yaml' 256 258 @('256,0', '257,12', '258,0')
+Test-Memory 'sqrt.yaml' 65535 65535 @('65535,10')
+
+Test-InvalidProgram @('- push: 144', '- sqrt: 1') 'at byte 4: stack underflow'
+Test-InvalidProgram @('- push: 65535', '- push: 144', '- sqrt: 1') 'base + offset in 0..65535'
+$fractionalBase = @('- push: 0', '- push: 2', '- sqrt: 0', '- load: 0', '- push: 9', '- sqrt: 0')
+Test-InvalidProgram $fractionalBase 'requires a whole base address'
+Write-Host 'PASS: invalid sqrt operands and destinations'
