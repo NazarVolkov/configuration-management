@@ -82,10 +82,42 @@ address,value
 `tests/run.ps1` проверяет поля и байты из спецификации, копирование массива, команду `sqrt`, диагностические
 сообщения и CSV для всех трёх векторов. В векторных тестах проверяются исходный вектор, результат и ячейки между ними.
 
-## Устройство программы
+## Где реализованы этапы
 
-- `main.cpp` обрабатывает аргументы, запускает сборку машинного кода или интерпретацию и выводит ошибки.
-- `instruction.cpp` задаёт мнемоники, коды и ширину полей. `find_operation` ищет команду по имени или коду.
-- `assembler.cpp` читает YAML через `read_assembly`, проверяет синтаксис и диапазон каждого операнда.
-- `machine_code.cpp` записывает программу через `write_machine_code` и читает команды через `read_instruction`.
-- `interpreter.cpp` выполняет команды в `interpret`, управляет стеком, вычисляет адрес записи и сохраняет CSV.
+### Этап 1. Перевод YAML в промежуточное представление
+
+- `read_assembly` читает YAML, проверяет синтаксис и операнды и возвращает список команд.
+  [src/assembler.cpp](src/assembler.cpp)
+- `Instruction` хранит код операции и операнд. `find_operation` ищет описание мнемоники и ширины поля.
+  [src/instruction.h](src/instruction.h), [src/instruction.cpp](src/instruction.cpp)
+- `assemble` разбирает аргументы и по флагу `--test-fields` выводит поля `A` и `B`.
+  [src/main.cpp](src/main.cpp)
+- Входные команды для проверки всех четырёх пар полей. [tests/encoding.yaml](tests/encoding.yaml)
+
+### Этап 2. Формирование машинного кода
+
+- `encode` упаковывает команду в четыре байта, `write_machine_code` записывает файл и при `--test` выводит байты.
+  [src/machine_code.cpp](src/machine_code.cpp)
+- `assemble` передаёт результат трансляции на запись и сообщает размер двоичного файла.
+  [src/main.cpp](src/main.cpp)
+- Проверки сравнивают вывод и содержимое файла с эталонными байтами. [tests/run.ps1](tests/run.ps1)
+
+### Этап 3. Интерпретатор и операции с памятью
+
+- `read_instruction` читает и декодирует очередные четыре байта. [src/machine_code.cpp](src/machine_code.cpp)
+- `execute_program` управляет циклом исполнения, `execute` выполняет `push`, `load` и `store`,
+  а `write_dump` записывает выбранный диапазон в CSV. [src/interpreter.cpp](src/interpreter.cpp)
+- `run` разбирает параметры команды `interpret`. [src/main.cpp](src/main.cpp)
+- Тестовая программа заполняет и копирует массив. [tests/copy.yaml](tests/copy.yaml)
+
+### Этап 4. Реализация операции `sqrt`
+
+- Ветка `Opcode::sqrt` в `execute` снимает два значения со стека и записывает корень. `resolve_address` проверяет
+  адрес назначения. [src/interpreter.cpp](src/interpreter.cpp)
+- Программа проверяет вычисление корня и запись по адресу со смещением. [tests/sqrt.yaml](tests/sqrt.yaml)
+
+### Этап 5. Поэлементный корень из вектора
+
+- Три YAML-программы обрабатывают векторы из шести элементов. [Квадраты], [Смешанные числа], [Большие числа]
+- `Test-Memory` собирает и выполняет каждую программу, а `Assert-Dump` сверяет адреса и значения в CSV.
+  [tests/run.ps1](tests/run.ps1)
