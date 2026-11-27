@@ -1,0 +1,33 @@
+# Input vector: [100, 1024, 10000, 1000000, 16777216, 67092481].
+- push: 100
+- store: 10
+- push: 1024
+- store: 11
+- push: 10000
+- store: 12
+- push: 1000000
+- store: 13
+- push: 16777216
+- store: 14
+- push: 67092481
+- store: 15
+
+# Write sqrt of each input from 10..15 to the output vector at 20..25.
+- push: 20
+- load: 10
+- sqrt: 0
+- push: 20
+- load: 11
+- sqrt: 1
+- push: 20
+- load: 12
+- sqrt: 2
+- push: 20
+- load: 13
+- sqrt: 3
+- push: 20
+- load: 14
+- sqrt: 4
+- push: 20
+- load: 15
+- sqrt: 5
