@@ -1,0 +1,16 @@
+/build/
+/out/
+*.exe
+*.obj
+*.o
+*.pdb
+*.ilk
+*.zip
+*.7z
+*.tar
+*.gz
+/.vs/
+/.vscode/
+/.idea/
+__pycache__/
+*.py[cod]
